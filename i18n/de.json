@@ -1,0 +1,14 @@
+{
+    "bot_username": "Ticketsbot",
+    "bot_username_desc": "Der Benutzername des Bots, der zum Senden von Ticketen verwendet wird.",
+    "bot_name": "Absender der Ticketsnachricht",
+    "bot_name_desc": "Der Anzeigename des Bots, der zum Senden von Ticketen verwendet wird.",
+    "ticket-trigger-label": "🎟 Ticket",
+    "ticket-trigger-message-label": "🎟 Ticket eröffnen",
+    "app_language": "App-Sprache",
+    "app_language_desc": "Die Sprache, die in der App verwendet werden soll.",
+    "app_language_en": "Englisch",
+    "app_language_de": "Deutsch",
+    "webhook_url_label": "Webhook-URL",
+    "webhook_url_description": "Die URL, an die die Webhook-Nutzlast gesendet wird."
+}

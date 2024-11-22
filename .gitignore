@@ -26,3 +26,8 @@ out/
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# dev
+.envrc
+.direnv
+shell.nix

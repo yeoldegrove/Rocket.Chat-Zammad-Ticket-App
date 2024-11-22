@@ -1,11 +1,19 @@
 import { ISetting, SettingType } from '@rocket.chat/apps-engine/definition/settings';
-import { AppConfig } from './config';
 
 export const settings: Array<ISetting> = [
     {
+        id: 'webhook_url',
+        type: SettingType.STRING,
+        packageValue: '',
+        required: true,
+        public: false,
+        i18nLabel: 'webhook_url_label',
+        i18nDescription: 'webhook_url_description',
+    },
+    {
         id: 'bot_username',
         type: SettingType.STRING,
-        packageValue: 'oe-reminder.bot',
+        packageValue: 'ticket.bot',
         required: true,
         public: false,
         i18nLabel: 'bot_username',
@@ -14,7 +22,7 @@ export const settings: Array<ISetting> = [
     {
         id: 'bot_name',
         type: SettingType.STRING,
-        packageValue: 'Cukoo',
+        packageValue: 'Ticket Bot',
         required: true,
         public: false,
         i18nLabel: 'bot_name',
@@ -22,56 +30,21 @@ export const settings: Array<ISetting> = [
     },
     {
         id: 'app_language',
-        type: SettingType.SELECT,
+        type: SettingType.STRING,
         packageValue: 'en',
-        values: [
-            {
-                key: 'en',
-                i18nLabel: 'app_language_en',
-            },
-            {
-                key: 'vi',
-                i18nLabel: 'app_language_vi',
-            },
-            {
-                key: 'br',
-                i18nLabel: 'app_language_br',
-            },
-            {
-                key: 'fr',
-                i18nLabel: 'app_language_fr',
-            }
-        ],
         required: true,
         public: false,
         i18nLabel: 'app_language',
         i18nDescription: 'app_language_desc',
     },
     {
-        id: 'default_channel',
+        id: 'ticket_groups',
         type: SettingType.STRING,
-        packageValue: 'general',
+        packageValue: 'Support',
         required: true,
         public: false,
-        i18nLabel: 'default_channel',
-        i18nDescription: 'default_channel_desc',
+        i18nLabel: 'Ticket Groups',
+        i18nDescription: 'Comma-separated list of available ticket groups',
     },
-    {
-        id: 'enable_remindto_channel',
-        type: SettingType.BOOLEAN,
-        packageValue: true,
-        required: false,
-        public: false,
-        i18nLabel: 'enable_remindto_channel',
-        i18nDescription: 'enable_remindto_channel_desc',
-    },
-    {
-        id: 'max_users_remind',
-        type: SettingType.NUMBER,
-        packageValue: 3,
-        required: false,
-        public: false,
-        i18nLabel: 'max_users_remind',
-        i18nDescription: 'max_users_remind_desc',
-    }
 ];
+

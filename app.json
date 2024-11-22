@@ -1,17 +1,17 @@
 {
-    "id": "f3ff06c9-fa92-44eb-be38-61cafb7b7566",
-    "version": "1.0.7",
+    "id": "c2644620-60d6-448d-b0f2-b06bf2f47a08",
+    "version": "0.0.2",
     "requiredApiVersion": "^1.36.0",
     "iconFile": "icon.png",
     "author": {
-        "name": "juzser",
-        "homepage": "https://github.com/juzser",
-        "support": "https://github.com/juzser/Rocket.Chat-reminder"
+        "name": "yeoldegrove",
+        "homepage": "https://github.com/yeoldegrove",
+        "support": "https://github.com/yeoldegrove/Rocket.Chat-Zammad-Ticket-App"
     },
-    "name": "Cukoo Reminder",
-    "nameSlug": "oe-reminder",
-    "classFile": "OeReminderApp.ts",
-    "description": "Advanced FREE reminder app that will remind you what to do. Main features: One time, frequency remind. --- View active, completed reminders. --- Pause/Resume reminders. --- Remind yourself, channel or other users. --- Quote a message to a reminder. --- Easy to use & fully performance optimization. --- AND, it's Opensources. You can feel free to ask me anything via Github repo.",
+    "name": "Rocket.Chat Zammad Ticket App",
+    "nameSlug": "zammad-ticket-app",
+    "classFile": "ZammadTicketApp.ts",
+    "description": "A Rocket.Chat App that will create Tickets in Zammad for you.",
     "permissions": [
         {
             "name": "server-setting.read"
@@ -20,31 +20,22 @@
             "name": "ui.interact"
         },
         {
-            "name": "slashcommand"
-        },
-        {
-            "name": "persistence"
-        },
-        {
             "name": "message.read"
         },
         {
             "name": "message.write"
         },
         {
-            "name": "scheduler"
-        },
-        {
             "name": "room.read"
-        },
-        {
-            "name": "room.write"
         },
         {
             "name": "user.read"
         },
         {
             "name": "ui.registerButtons"
+        },
+        {
+            "name": "networking"
         }
     ],
     "implements": []

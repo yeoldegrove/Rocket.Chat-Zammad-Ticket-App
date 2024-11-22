@@ -1,25 +1,12 @@
 import { IModify, IRead } from '@rocket.chat/apps-engine/definition/accessors';
 import { IMessage, IMessageAttachment } from '@rocket.chat/apps-engine/definition/messages';
 import { IRoom, RoomType } from '@rocket.chat/apps-engine/definition/rooms';
-import { BlockBuilder, IOptionObject, TextObjectType } from '@rocket.chat/apps-engine/definition/uikit';
+import { BlockBuilder } from '@rocket.chat/apps-engine/definition/uikit';
 import { IUser } from '@rocket.chat/apps-engine/definition/users';
-
-import { OeReminderApp as appClass } from '../../OeReminderApp';
-import { JobType } from '../interfaces/IJob';
-import { Lang } from '../lang/index';
-import { AppConfig } from './config';
+import { ZammadTicketApp as appClass } from '../../ZammadTicketApp';
 
 /**
  * Sends a message using bot
- *
- * @param app
- * @param modify
- * @param room Where to send message to
- * @param message (optional) What to send
- * @param attachments (optional) Message attachments
- * @param blocks (optional) Message blocks
- *
- * @returns messageId
  */
 export async function sendMessage({ app, modify, room, message, attachments, blocks, avatar, group }: {
     app: appClass,
@@ -35,7 +22,7 @@ export async function sendMessage({ app, modify, room, message, attachments, blo
         .setGroupable(group || false)
         .setSender(app.botUser)
         .setUsernameAlias(app.botName)
-        .setAvatarUrl(avatar || AppConfig.avatar)
+        .setAvatarUrl(avatar || '/avatar/ticket.bot')
         .setRoom(room);
 
     if (message && message.length > 0) {
@@ -58,11 +45,6 @@ export async function sendMessage({ app, modify, room, message, attachments, blo
 
 /**
  * Notifies user using bot
- *
- * @param app
- * @param modify
- * @param user Who to notify
- * @param message What to send
  */
 export async function notifyUser({ app, message, user, room, modify, blocks, attachments }: {
     app: appClass,
@@ -76,7 +58,7 @@ export async function notifyUser({ app, message, user, room, modify, blocks, att
     const msg = modify.getCreator().startMessage()
         .setSender(app.botUser)
         .setUsernameAlias(app.botName)
-        .setAvatarUrl(AppConfig.avatar)
+        .setAvatarUrl('/avatar/ticket.bot')
         .setText(message)
         .setRoom(room);
 
@@ -97,289 +79,12 @@ export async function notifyUser({ app, message, user, room, modify, blocks, att
 }
 
 /**
- * Update a message using bot
- *
- * @param app
- * @param modify
- * @param messageId Update which message by id
- * @param message (optional) What to send
- * @param attachments (optional) Message attachments
- * @param blocks (optional) Message blocks
- *
- * @returns messageId
- */
-export async function updateMessage({ app, modify, messageId, sender, message, attachments, blocks }: {
-    app: appClass,
-    modify: IModify,
-    messageId: string,
-    sender?: IUser,
-    message?: string,
-    attachments?: Array<IMessageAttachment>,
-    blocks?: BlockBuilder,
-}): Promise<void> {
-    const msg = await modify.getUpdater().message(messageId, sender ? sender : app.botUser);
-    msg.setEditor(msg.getSender());
-
-    if (message && message.length > 0) {
-        msg.setText(message);
-    }
-    if (attachments && attachments.length > 0) {
-        msg.setAttachments(attachments);
-    }
-    if (blocks !== undefined) {
-        msg.setBlocks(blocks);
-    }
-
-    try {
-        return await modify.getUpdater().finish(msg);
-    } catch (error) {
-        app.getLogger().log(error);
-        return;
-    }
-}
-
-/**
- * Gets a direct message room between bot and another user, creating if it doesn't exist
- *
- * @param app
- * @param read
- * @param modify
- * @param username the username to create a direct with bot
- * @returns the room or undefined if botUser or botUsername is not set
- */
-export async function getDirect(app: appClass, username: string, read: IRead, modify: IModify): Promise <IRoom | undefined> {
-    if (app.botUsername) {
-        const usernames = [app.botUsername, username];
-        let room;
-        try {
-            room = await read.getRoomReader().getDirectByUsernames(usernames);
-        } catch (error) {
-            app.getLogger().log(error);
-            return;
-        }
-
-        if (room) {
-            return room;
-        } else if (app.botUser) {
-            // Create direct room between botUser and username
-            try {
-                const newRoom = modify.getCreator().startRoom()
-                    .setType(RoomType.DIRECT_MESSAGE)
-                    .setCreator(app.botUser)
-                    .setMembersToBeAddedByUsernames(usernames);
-                const roomId = await modify.getCreator().finish(newRoom);
-                return await read.getRoomReader().getById(roomId);
-            } catch (error) {
-                app.getLogger().log(error);
-                return;
-            }
-        }
-    }
-    return;
-}
-
-/**
- * Get current room's members except BOTS
- */
-export async function getMembersByRoom(app: appClass, room: IRoom, read: IRead): Promise<Array<IUser>> {
-    let members;
-    try {
-        members = await read.getRoomReader().getMembers(room.id);
-    } catch (error) {
-        app.getLogger().log(error);
-    }
-
-    return members.filter((member) => {
-        return !(/(rocket\.cat|app\.|\.bot|bot\.)/gi.test(member.username))
-            && member.roles.indexOf('guest') === -1
-            && member.isEnabled;
-    }) || [];
-}
-
-/**
- * Convert members array to the list member used in form
- *
- * @param members
- */
-export function getMemberOptions(members: Array<IUser>): Array<IOptionObject> {
-    const targets: Array<IOptionObject> = members
-        .sort((a, b) => {
-            return a.username.toUpperCase() < b.username.toUpperCase() ? -1 : 1;
-        })
-        .map((target) => {
-            return {
-                text: {
-                    type: TextObjectType.PLAINTEXT,
-                    text: target.username,
-                },
-                value: target.username,
-            };
-        });
-
-    return targets;
-}
-
-/**
- * Convert timestamp to date format dd/mm/yyyy
- */
-export function convertTimestampToDate(timestamp: number): string {
-    const date = new Date(timestamp);
-    const day = date.getDate();
-    const month = date.getMonth() + 1;
-    const year = date.getFullYear();
-
-    const pad = (n: number) => n < 10 ? `0${n}` : n;
-
-    return `${pad(day)}/${pad(month)}/${year}`;
-}
-
-/**
- * Convert date format dd/mm/yyyy to timestamp
- * @param date
- * @returns timestamp
- * @throws Error if date is invalid
- */
-export function convertDateToTimestamp(date: string): number {
-    const dateParts = date.split('/');
-    if (dateParts.length !== 3) {
-        throw new Error('Invalid date format');
-    }
-    const day = parseInt(dateParts[0]);
-    const month = parseInt(dateParts[1]) - 1;
-    const year = parseInt(dateParts[2]);
-    return new Date(year, month, day).getTime();
-}
-
-/**
- * Convert timestamp to time format hh:mm
- * @param timestamp
- * @returns time
- */
-export function convertTimestampToTime(timestamp: number): string {
-    const date = new Date(timestamp);
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-
-    const pad = (n: number) => n < 10 ? `0${n}` : n;
-
-    return `${pad(hours)}:${pad(minutes)}`;
-}
-
-/**
- * Get when date time
- */
-export function getWhenDateTime({ whenDate, whenTime, offset }: {
-    whenDate: string,
-    whenTime: string,
-    offset: number,
-}) {
-    const [day, month, year] = whenDate.split('/');
-    const [hour, minute] = whenTime.split(':');
-
-    const whenDateTime = new Date(
-        parseInt(year, 10),
-        parseInt(month, 10) - 1,
-        parseInt(day, 10),
-        parseInt(hour, 10) - offset,
-        parseInt(minute, 10),
-    );
-
-    return whenDateTime;
-}
-
-/**
- * Get week day name from lang
- */
-export function getWeekDayName(app: appClass, date: string): string {
-    const ts = convertDateToTimestamp(date);
-    const day = new Date(ts).getDay();
-
-    const { lang } = new Lang(app.appLanguage);
-
-    switch(day) {
-        case 0:
-            return lang.date.sunday;
-        case 1:
-            return lang.date.monday;
-        case 2:
-            return lang.date.tuesday;
-        case 3:
-            return lang.date.wednesday;
-        case 4:
-            return lang.date.thursday;
-        case 5:
-            return lang.date.friday;
-        case 6:
-            return lang.date.saturday;
-    }
-
-    return '';
-}
-
-export function getNextRunAt({ type, whenDate, whenTime, offset }: {
-    type: JobType;
-    whenDate: string;
-    whenTime: string;
-    offset: number; // user timezone offset
-}): Date {
-    // Calculate the next run base on the last run
-    // But the time should be correct as whenDate & whenTime
-    const firstRunAt = getWhenDateTime({ whenDate, whenTime, offset });
-    const firstRunTimestamp = firstRunAt.getTime();
-
-    const currentDate = new Date();
-    const currentTimestamp = currentDate.getTime();
-
-    // Get next run base on the current time
-    if (type === JobType.DAILY || type === JobType.WEEKDAYS) {
-        const alpha = (currentTimestamp - firstRunTimestamp) % (24 * 60 * 60 * 1000);
-        const nextRunAt = new Date(currentTimestamp + (24 * 60 * 60 * 1000 - alpha));
-
-        if (type === JobType.WEEKDAYS) {
-            // Skip weekend
-            while (nextRunAt.getDay() === 0 || nextRunAt.getDay() === 6) {
-                nextRunAt.setDate(nextRunAt.getDate() + 1);
-            }
-        }
-
-        return nextRunAt;
-    }
-
-    if (type === JobType.WEEKLY) {
-        // Get the next run timestamp base on the first run timestamp
-        // The next run time will be triggered in current week
-        const alpha = (currentTimestamp - firstRunTimestamp) % (7 * 24 * 60 * 60 * 1000);
-        return new Date(currentTimestamp + (7 * 24 * 60 * 60 * 1000 - alpha));
-    }
-
-    if (type === JobType.BIWEEKLY) {
-        const alpha = (currentTimestamp - firstRunTimestamp) % (14 * 24 * 60 * 60 * 1000);
-        return new Date(currentTimestamp + (14 * 24 * 60 * 60 * 1000 - alpha));
-    }
-
-    if (type === JobType.MONTHLY) {
-        const nextRunAt = new Date(firstRunAt);
-        nextRunAt.setMonth(currentDate.getMonth());
-        nextRunAt.setFullYear(currentDate.getFullYear());
-
-        if (currentTimestamp > nextRunAt.getTime()) {
-            nextRunAt.setMonth(currentDate.getMonth() + 1);
-        }
-
-        return nextRunAt;
-    }
-
-    return firstRunAt;
-}
-
-/**
  * Truncate a string
  */
 export function truncate(str: string, length: number): string {
     if (str.length > length) {
         return `${str.substring(0, length)}...`;
     }
-
     return str;
 }
 
@@ -387,42 +92,24 @@ export function truncate(str: string, length: number): string {
  * Generate message link
  */
 export async function generateMsgLink(app: appClass, message: IMessage): Promise<string> {
-    if (message.room.type === RoomType.CHANNEL) {
-        return `${app.siteUrl}/channel/${message.room.slugifiedName}?msg=${message.id}`;
-    }
-
-    if (message.room.type === RoomType.PRIVATE_GROUP) {
-        return `${app.siteUrl}/group/${message.room.slugifiedName}?msg=${message.id}`;
-    }
-
-    return `${app.siteUrl}/direct/${message.room.id}?msg=${message.id}`;
+    const roomName = message.room.slugifiedName || message.room.id;
+    return `${app.siteUrl}/${message.room.type === RoomType.DIRECT_MESSAGE ? 'direct' : 'channel'}/${roomName}?msg=${message.id}`;
 }
 
 /**
  * Get room name
  */
 export async function getRoomName(read: IRead, room: IRoom): Promise<string> {
-    if (room.type === RoomType.DIRECT_MESSAGE && room.userIds) {
-        // const userNames: string[] = [];
-        // for (const userId of room.userIds) {
-        //     const user = await read.getUserReader().getById(userId);
-        //     userNames.push(user.username);
-        // }
-
-        // return `direct (${userNames.join(', ')})`;
+    if (room.type === RoomType.DIRECT_MESSAGE) {
         return 'direct';
     }
-
     return room.displayName || room.slugifiedName || room.id;
 }
 
 /**
  * Format message in attachment
  */
-export function formatMsgInAttachment(msg: string) {
+export function formatMsgInAttachment(msg: string): string {
     if (!msg) return msg;
-
-    const msgFormatted = msg.replace(/<http(.*)\|(.*?)>/g, '[$2]($1)');
-
-    return msgFormatted;
+    return msg.replace(/<http(.*)\|(.*?)>/g, '[$2]($1)');
 }

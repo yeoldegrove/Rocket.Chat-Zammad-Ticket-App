@@ -1,31 +1,13 @@
-import { vi } from './vi';
+import { de } from './de';
 import { en } from './en';
-import { br } from './br';
-import { fr } from './fr';
 
-// export const lang = vi;
+// export const lang = de;
 
 export class Lang {
-    private _lang: Record<string, any> = {};
+    private _lang: Record<string, any>;
 
     constructor(private readonly locale?: string) {
-        switch (locale) {
-            case 'vi-vn':
-                this._lang = vi;
-                break;
-            case 'vi':
-                this._lang = vi;
-                break;
-            case 'br':
-                this._lang = br;
-                break;
-            case 'fr':
-                this._lang = fr;
-                break;
-            default:
-                this._lang = en;
-                break;
-        }
+        this._lang = locale === 'de' ? de : en;
     }
 
     get lang(): Record<string, any> {

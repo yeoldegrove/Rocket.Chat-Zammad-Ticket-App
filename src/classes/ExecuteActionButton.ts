@@ -1,9 +1,8 @@
 import { IModify, IRead } from '@rocket.chat/apps-engine/definition/accessors';
 import { UIKitActionButtonInteractionContext } from '@rocket.chat/apps-engine/definition/uikit';
 
-import { OeReminderApp as AppClass } from '../../OeReminderApp';
-import { openCreateModal } from '../commands/remind/create';
-import { sendHelp } from '../commands/remind/help';
+import { ZammadTicketApp as AppClass } from '../../ZammadTicketApp';
+import { openCreateModal } from '../lib/createModal';
 
 export class ExecuteActionButton {
     constructor(
@@ -13,14 +12,9 @@ export class ExecuteActionButton {
     ) {}
 
     public async run(context: UIKitActionButtonInteractionContext): Promise<void> {
-        // Send message
         const { room, user, actionId, triggerId } = context.getInteractionData();
 
-        if (actionId === 'reminder-trigger') {
-            await sendHelp({ app: this.app, modify: this.modify, user, room });
-        }
-
-        if (actionId === 'reminder-trigger-message') {
+        if (actionId === 'ticket-trigger-message') {
             const { message } = context.getInteractionData();
 
             await openCreateModal({
@@ -31,7 +25,7 @@ export class ExecuteActionButton {
                 modify: this.modify,
                 triggerId,
                 refMessage: message,
-            })
+            });
         }
     }
 }
