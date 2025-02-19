@@ -93,7 +93,9 @@ export function truncate(str: string, length: number): string {
  */
 export async function generateMsgLink(app: appClass, message: IMessage): Promise<string> {
     const roomName = message.room.slugifiedName || message.room.id;
-    return `${app.siteUrl}/${message.room.type === RoomType.DIRECT_MESSAGE ? 'direct' : 'channel'}/${roomName}?msg=${message.id}`;
+    const roomType = message.room.type === RoomType.DIRECT_MESSAGE ? 'direct' : 
+                    message.room.type === RoomType.PRIVATE_GROUP ? 'group' : 'channel';
+    return `${app.siteUrl}/${roomType}/${roomName}?msg=${message.id}`;
 }
 
 /**
